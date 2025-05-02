@@ -1,0 +1,25 @@
+FROM bellsoft/liberica-runtime-container:jdk-21-stream-musl as builder
+
+WORKDIR /home/app
+ADD spring-petclinic-main /home/app/spring-petclinic-main
+RUN cd spring-petclinic-main && ./mvnw -Dmaven.test.skip=true clean package
+
+FROM bellsoft/liberica-runtime-container:jdk-21-cds-slim-musl as optimizer
+
+WORKDIR /app
+COPY --from=builder /home/app/spring-petclinic-main/target/*.jar app.jar
+RUN java -Djarmode=tools -jar app.jar extract --layers --destination extracted
+
+
+FROM bellsoft/liberica-runtime-container:jdk-21-cds-slim-musl
+
+ENTRYPOINT ["java", "-Dspring.aot.enabled=true", "-XX:SharedArchiveFile=application.jsa", "-jar", "/app/app.jar"]
+
+WORKDIR /app
+
+COPY --from=optimizer /app/extracted/dependencies/ ./
+COPY --from=optimizer /app/extracted/spring-boot-loader/ ./
+COPY --from=optimizer /app/extracted/snapshot-dependencies/ ./
+COPY --from=optimizer /app/extracted/application/ ./
+
+RUN java -Dspring.aot.enabled=true -XX:ArchiveClassesAtExit=./application.jsa -Dspring.context.exit=onRefresh -jar /app/app.jar
