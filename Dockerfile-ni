@@ -1,0 +1,12 @@
+FROM bellsoft/liberica-native-image-kit-container:musl as builder
+
+WORKDIR /app
+RUN apk update
+ADD spring-petclinic-main /app/spring-petclinic-main
+RUN cd spring-petclinic-main && ./mvnw -Dmaven.test.skip=true -Pnative native:compile
+
+FROM bellsoft/alpaquita-linux-base:musl
+
+WORKDIR /app
+ENTRYPOINT ["/app/app"]
+COPY --from=builder /app/spring-petclinic-main/target/spring-petclinic-main /app/app
