@@ -1,9 +1,9 @@
-FROM bellsoft/liberica-runtime-container:jre-24-cds-musl as optimizer
+FROM bellsoft/liberica-runtime-container:jre-25-cds-musl as optimizer
 WORKDIR /app
 COPY project/target/application.jar app.jar
 RUN java -Djarmode=tools -jar /app/app.jar extract --layers --destination extracted
 
-FROM bellsoft/liberica-runtime-container:jre-24-slim-musl
+FROM bellsoft/liberica-runtime-container:jre-25-slim-musl
 
 WORKDIR /app
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
