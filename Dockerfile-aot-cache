@@ -17,5 +17,7 @@ COPY --from=optimizer /app/extracted/snapshot-dependencies/ ./
 COPY --from=optimizer /app/extracted/application/ ./
 EXPOSE 8080
 
+# Don't forget to add the procecc-aot goal to the build plugin
+
 RUN java -Dspring.aot.enabled=true -XX:AOTCacheOutput=app.aot -Dspring.context.exit=onRefresh -jar /app/app.jar
 ENTRYPOINT ["java", "-Dspring.aot.enabled=true", "-XX:AOTCache=app.aot", "-jar", "/app/app.jar"]
